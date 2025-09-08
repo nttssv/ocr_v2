@@ -43,7 +43,8 @@ if LOG_LEVEL == 'WARNING':
 
 # Global variables
 processing_tasks: Dict[str, Dict[str, Any]] = {}
-thread_pool = ThreadPoolExecutor(max_workers=4)
+# Optimized for maximum parallel processing - increase workers for faster processing
+thread_pool = ThreadPoolExecutor(max_workers=16)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -221,7 +222,7 @@ def optimized_ocr_with_quality_analysis(pdf_path: str, page_number: int, output_
             output_pdf = os.path.join(temp_dir, f"page_{page_number}_processed.pdf")
             sidecar_text = os.path.join(temp_dir, f"page_{page_number}_text.txt")
             
-            # Ultra-optimized command for sub-5-second processing
+            # Optimized command with quality corrections and 16 workers
             cmd = [
                 sys.executable, "-m", "ocrmypdf",
                 "--deskew",  # Fix skew
@@ -232,10 +233,10 @@ def optimized_ocr_with_quality_analysis(pdf_path: str, page_number: int, output_
                 "--tesseract-pagesegmode", "6",  # Uniform text block for speed
                 "--optimize", "0",  # Skip optimization for speed
                 "--pdfa-image-compression", "jpeg",  # Faster compression
-                "--image-dpi", "72",  # Further reduced DPI from 100 to 72 for maximum speed
-                "--jpeg-quality", "75",  # Lower quality for speed
-                "--skip-big", "30",  # Skip large images more aggressively
-                "--tesseract-timeout", "20",  # Further reduce tesseract timeout
+                "--image-dpi", "100",  # Standard DPI for quality
+                "--jpeg-quality", "75",  # Good quality
+                "--skip-big", "30",  # Skip large images
+                "--tesseract-timeout", "30",  # Standard timeout
                 "--fast-web-view", "0",  # Disable web view optimization
                 pdf_path,
                 output_pdf
@@ -378,8 +379,8 @@ def extract_text_fallback(pdf_path: str, output_text_path: str, language: str = 
         from io import BytesIO
         img = Image.open(BytesIO(img_data))
         
-        # Extract text using Tesseract with highly optimized config for speed
-        custom_config = r'--oem 1 --psm 6 --dpi 150'  # Use LSTM engine, uniform text block, reduced DPI
+        # Extract text using Tesseract with optimized config
+        custom_config = r'--oem 1 --psm 6 --dpi 150'  # Use LSTM engine, uniform text block, standard DPI
         extracted_text = pytesseract.image_to_string(img, lang=language, config=custom_config)
         
         # Save text to file
@@ -975,7 +976,8 @@ def process_pdf_with_per_page_analysis(document_id: str, input_path: str, output
         all_quality_issues = []
         
         # Use ThreadPoolExecutor for parallel processing with optimized parameters
-        with ThreadPoolExecutor(max_workers=min(4, total_pages)) as executor:
+        # Increased workers for maximum performance - target ~2s per page
+        with ThreadPoolExecutor(max_workers=min(16, total_pages)) as executor:
             # Submit all page processing tasks with handwriting detection parameter
             future_to_page = {
                 executor.submit(process_single_page, page_file, i + 1, output_dir, filename_base, language, enable_handwriting_detection): i + 1
