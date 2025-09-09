@@ -36,15 +36,23 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Configuration from environment variables
+MAX_WORKERS = int(os.getenv('MAX_WORKERS', '16'))
+API_PORT = int(os.getenv('API_PORT', '8000'))
+API_HOST = os.getenv('API_HOST', '0.0.0.0')
+CORS_ORIGINS = os.getenv('CORS_ORIGINS', '*').split(',')
+CORS_CREDENTIALS = os.getenv('CORS_CREDENTIALS', 'true').lower() == 'true'
+
 # Log startup configuration
 logger.info(f"OCR API starting with log level: {LOG_LEVEL}")
+logger.info(f"Configuration: {MAX_WORKERS} workers, listening on {API_HOST}:{API_PORT}")
 if LOG_LEVEL == 'WARNING':
     logger.info("Production logging mode: Reduced verbosity for better performance")
 
 # Global variables
 processing_tasks: Dict[str, Dict[str, Any]] = {}
-# Optimized for maximum parallel processing - increase workers for faster processing
-thread_pool = ThreadPoolExecutor(max_workers=16)
+# Optimized for maximum parallel processing - configurable via environment
+thread_pool = ThreadPoolExecutor(max_workers=MAX_WORKERS)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -68,12 +76,12 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Add CORS middleware
+# Add CORS middleware - configurable for security
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_origins=CORS_ORIGINS,
+    allow_credentials=CORS_CREDENTIALS,
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -977,7 +985,7 @@ def process_pdf_with_per_page_analysis(document_id: str, input_path: str, output
         
         # Use ThreadPoolExecutor for parallel processing with optimized parameters
         # Increased workers for maximum performance - target ~2s per page
-        with ThreadPoolExecutor(max_workers=min(16, total_pages)) as executor:
+        with ThreadPoolExecutor(max_workers=min(MAX_WORKERS, total_pages)) as executor:
             # Submit all page processing tasks with handwriting detection parameter
             future_to_page = {
                 executor.submit(process_single_page, page_file, i + 1, output_dir, filename_base, language, enable_handwriting_detection): i + 1
@@ -1261,8 +1269,8 @@ async def health_check():
 if __name__ == "__main__":
     uvicorn.run(
         "api:app",
-        host="0.0.0.0",
-        port=8000,
+        host=API_HOST,
+        port=API_PORT,
         reload=False,
-        log_level="info"
+        log_level=LOG_LEVEL.lower()
     )
