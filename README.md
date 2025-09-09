@@ -17,10 +17,15 @@ A high-performance FastAPI-based OCR service for processing PDF documents with V
 ocr_test/
 ├── api.py                 # Main FastAPI application
 ├── requirements.txt       # Python dependencies
+├── requirements_client.txt # Client tool dependencies
+├── ocr_client.py         # Command-line OCR client
+├── demo_client.py        # Interactive demo client
+├── CLIENT_README.md      # Client documentation
 ├── samples/              # Sample PDF files for testing
 │   ├── 1.pdf            # 4-page Vietnamese legal document
 │   ├── 2.pdf            # 9-page Vietnamese court document
-│   └── 3.pdf            # 30-page Vietnamese legal document
+│   ├── 3.pdf            # 30-page Vietnamese legal document
+│   └── 4.pdf            # 7-page Vietnamese court judgment
 └── output/               # Processed results
     ├── 1/                # Results for 1.pdf
     │   ├── 1_analysis.json
@@ -31,7 +36,8 @@ ocr_test/
     │       ├── 1_page1.txt
     │       └── ...
     ├── 2/                # Results for 2.pdf
-    └── 3/                # Results for 3.pdf
+    ├── 3/                # Results for 3.pdf
+    └── 4/                # Results for 4.pdf
 ```
 
 ## 🛠️ Installation
@@ -110,12 +116,19 @@ Based on processing the included sample documents:
 | 1.pdf    | 4     | 9.51s         | 2.38s/page  | 0 issues       |
 | 2.pdf    | 9     | 21.68s        | 2.41s/page  | 1 orientation  |
 | 3.pdf    | 30    | 51.70s        | 1.72s/page  | 1 blank page   |
+| 4.pdf    | 7     | 8.94s         | 1.28s/page  | 0 issues       |
 
 **Key Performance Metrics:**
-- **Average Processing Speed**: ~2.2 seconds per page
+- **Average Processing Speed**: ~1.9 seconds per page
 - **Optimization Improvement**: 85% faster than baseline
-- **Parallel Processing**: Up to 4 concurrent pages
+- **Parallel Processing**: Up to 16 concurrent workers
 - **Memory Efficiency**: In-memory PDF processing
+- **Apple M4 Performance**: 2x faster than typical systems (8.94s vs 18s for 7-page documents)
+
+### System Configuration (Tested)
+- **Hardware**: Apple M4 chip (10 cores: 4 performance + 6 efficiency), 16 GB RAM, Apple SSD
+- **Software**: macOS 15.5, Python 3.13.5, Tesseract 5.5.1
+- **OCR Languages**: Vietnamese (vie), English (eng), and 100+ other languages supported
 
 ## 🔧 API Endpoints
 
@@ -177,14 +190,30 @@ The API automatically detects and reports:
 ### Environment Variables
 
 - `LOG_LEVEL`: Set logging level (INFO, WARNING, DEBUG)
-- `WORKERS`: Number of parallel processing workers (default: 4)
+- `WORKERS`: Number of parallel processing workers (default: 16)
+- `TESSDATA_PREFIX`: Tesseract data directory (auto-configured)
 
 ### Performance Tuning
 
 ```python
 # In api.py, adjust these parameters:
-thread_pool = ThreadPoolExecutor(max_workers=4)  # Parallel processing
-max_workers=min(4, total_pages)  # Per-document parallelism
+thread_pool = ThreadPoolExecutor(max_workers=16)  # Parallel processing
+max_workers=min(16, total_pages)  # Per-document parallelism
+```
+
+### Client Tools
+
+The project includes Python client tools for easy testing:
+
+```bash
+# Install client dependencies
+pip install -r requirements_client.txt
+
+# Process a document with the client
+python ocr_client.py samples/4.pdf -l vie
+
+# Demo client for interactive testing
+python demo_client.py
 ```
 
 ## 📝 Output Structure
