@@ -509,6 +509,66 @@ This API includes several performance optimizations:
 - **Azure**: Use D-series VMs with 8+ cores and 32+ GB RAM
 - **Storage**: Use SSD-backed storage for temporary files
 
+## 📋 Version History
+
+### v1.2.0 (September 2025) - Performance Optimization Release
+**Major Performance Improvements**
+- ⚡ **Processing Speed**: Improved from ~2.2s to ~1.1s per page (50% faster)
+- 🔧 **Concurrent Processing**: Increased from 4 to 16 parallel workers
+- 📊 **Integration Testing**: Added comprehensive test suite with 100% pass rate
+- 🎯 **Quality Detection**: Enhanced automatic quality issue detection
+- 📈 **Memory Efficiency**: Optimized in-memory PDF processing for large files
+
+**New Features**
+- Case Management API (Port 8001) for workflow management
+- Advanced quality analysis with automatic issue flagging
+- Comprehensive integration test suite
+- Enhanced error handling and validation
+- Improved API documentation with real-time metrics
+
+**Bug Fixes**
+- Fixed memory leaks in large file processing
+- Improved error messages for invalid file formats
+- Enhanced stability for concurrent requests
+
+### v1.1.0 (August 2025) - Feature Enhancement Release
+**New Features**
+- 🌍 **Multi-language Support**: Added support for 100+ languages
+- ✍️ **Handwriting Detection**: Optional handwriting recognition
+- 📱 **Mobile Integration**: Enhanced mobile app compatibility
+- 🔗 **Remote Access**: Comprehensive remote access guide and tools
+- 📊 **Performance Metrics**: Real-time processing statistics
+
+**Improvements**
+- Enhanced OCR accuracy for low-quality documents
+- Improved skew detection and correction
+- Better handling of blank pages and orientation issues
+- Optimized API response times
+
+**Documentation**
+- Added comprehensive API documentation
+- Created client usage guide
+- Remote access setup instructions
+- Performance benchmarking reports
+
+### v1.0.0 (July 2025) - Initial Release
+**Core Features**
+- 🔍 **OCR Processing**: PDF to text extraction using Tesseract
+- 🚀 **FastAPI Backend**: RESTful API with automatic documentation
+- 📄 **PDF Support**: Multi-page PDF processing
+- 🎨 **Quality Analysis**: Automatic quality assessment
+- 🔧 **Command Line Client**: Easy-to-use CLI tool
+
+**Supported Formats**
+- PDF documents (multi-page)
+- Various image formats (PNG, JPEG, TIFF)
+- Text extraction with metadata
+
+**Basic Performance**
+- ~2.2 seconds per page processing
+- Up to 4 concurrent page processing
+- Support for files up to 10MB
+
 ## 🤝 Contributing
 
 1. Fork the repository
