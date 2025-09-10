@@ -233,18 +233,18 @@ def optimized_ocr_with_quality_analysis(pdf_path: str, page_number: int, output_
             # Optimized command with quality corrections and 16 workers
             cmd = [
                 sys.executable, "-m", "ocrmypdf",
-                "--deskew",  # Fix skew
-                "--rotate-pages",  # Fix orientation
+                # "--deskew",  # Skip deskewing for speed
+                # "--rotate-pages",  # Skip rotation for speed
                 "--force-ocr",  # Ensure OCR runs
                 "--sidecar", sidecar_text,  # Extract text to file
                 "--tesseract-oem", "1",  # Use LSTM OCR engine for speed
-                "--tesseract-pagesegmode", "6",  # Uniform text block for speed
+                "--tesseract-pagesegmode", "1",  # Automatic page segmentation for speed
                 "--optimize", "0",  # Skip optimization for speed
                 "--pdfa-image-compression", "jpeg",  # Faster compression
-                "--image-dpi", "100",  # Standard DPI for quality
+                "--image-dpi", "75",  # Reduced DPI for faster processing
                 "--jpeg-quality", "75",  # Good quality
                 "--skip-big", "30",  # Skip large images
-                "--tesseract-timeout", "30",  # Standard timeout
+                "--tesseract-timeout", "180",  # Increased timeout for complex pages
                 "--fast-web-view", "0",  # Disable web view optimization
                 pdf_path,
                 output_pdf
@@ -258,7 +258,7 @@ def optimized_ocr_with_quality_analysis(pdf_path: str, page_number: int, output_
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=30  # Further reduced timeout for maximum speed
+                timeout=180  # Increased timeout for complex pages
             )
             
             # Parse OCR output for quality analysis

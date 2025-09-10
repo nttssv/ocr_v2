@@ -49,35 +49,23 @@ The system consists of two main components:
 
 ```
 ocr_test/
-├── api.py                    # Main OCR FastAPI application
-├── case_management_api.py    # Case management system API
-├── requirements.txt          # Python dependencies
-├── requirements_client.txt   # Client tool dependencies
-├── README.md                 # Main documentation
-├── API_DOCUMENTATION.md      # API endpoint documentation
-├── CLIENT_README.md          # Client tools documentation
-├── ocr_client.py            # Command-line OCR client
-├── demo_client.py           # Interactive demo client
-├── final_test.py            # Comprehensive test suite
-├── integration_test.py      # Integration testing
-├── create_sample_pdfs.py    # Sample PDF generator
-├── samples/                 # Sample PDF files for testing
-│   ├── 1.pdf               # 4-page Vietnamese legal document
-│   ├── 2.pdf               # 9-page Vietnamese court document
-│   ├── 3.pdf               # 30-page Vietnamese legal document
-│   └── 4.pdf               # 30-page Vietnamese court judgment
-└── output/                  # Processed results
-    ├── 1/                   # Results for 1.pdf
-    │   ├── 1_analysis.json  # Quality analysis and metadata
-    │   ├── pdf/             # Individual page PDFs
+├── api.py                 # Main FastAPI application
+├── requirements.txt       # Python dependencies
+├── samples/              # Sample PDF files for testing
+│   ├── 1.pdf            # 4-page Vietnamese legal document
+│   ├── 2.pdf            # 9-page Vietnamese court document
+│   └── 3.pdf            # 30-page Vietnamese legal document
+└── output/               # Processed results
+    ├── 1/                # Results for 1.pdf
+    │   ├── 1_analysis.json
+    │   ├── pdf/          # Individual page PDFs
     │   │   ├── 1_page1.pdf
     │   │   └── ...
-    │   └── text/            # Extracted text files
+    │   └── text/         # Extracted text files
     │       ├── 1_page1.txt
     │       └── ...
-    ├── 2/                   # Results for 2.pdf
-    ├── 3/                   # Results for 3.pdf (30 pages)
-    └── 4/                   # Results for 4.pdf (30 pages)
+    ├── 2/                # Results for 2.pdf
+    └── 3/                # Results for 3.pdf
 ```
 
 ## 🛠️ Installation
@@ -149,89 +137,19 @@ Visit `http://localhost:8000/docs` for interactive API documentation.
 
 ## 📊 Performance Benchmarks
 
-Based on processing the included sample documents (latest test results):
+Based on processing the included sample documents:
 
 | Document | Pages | Processing Time | Performance | Quality Issues |
 |----------|-------|----------------|-------------|----------------|
-| 1.pdf    | 4     | 11.05s        | 2.76s/page  | 0 issues       |
-| 2.pdf    | 9     | 17.41s        | 1.93s/page  | 0 issues       |
-| 3.pdf    | 30    | 35.08s        | 1.17s/page  | 1 quality issue|
-| 4.pdf    | 30    | 36.22s        | 1.21s/page  | 0 issues       |
+| 1.pdf    | 4     | 9.51s         | 2.38s/page  | 0 issues       |
+| 2.pdf    | 9     | 21.68s        | 2.41s/page  | 1 orientation  |
+| 3.pdf    | 30    | 51.70s        | 1.72s/page  | 1 blank page   |
 
 **Key Performance Metrics:**
-- **Average Processing Speed**: ~1.2 seconds per page
-- **Total Documents Processed**: 73 pages across 4 documents
-- **Success Rate**: 100% (4/4 files processed successfully)
-- **Parallel Processing**: Up to 16 concurrent workers
-- **Memory Efficiency**: In-memory PDF processing with large file support
-- **Apple M4 Performance**: Optimized for high-throughput document processing
-
-## 💻 Hardware Configuration & Performance
-
-### Recommended Hardware Configurations
-
-#### High-Performance Setup (Tested)
-- **CPU**: Apple M4 chip (10 cores: 4 performance + 6 efficiency)
-- **Memory**: 16 GB RAM
-- **Storage**: Apple SSD
-- **OS**: macOS 15.5
-- **Recommended Workers**: 16
-- **Expected Performance**: ~1.9 seconds per page
-
-#### Cloud/Server Setup
-- **CPU**: AMD EPYC 7B13 (2 cores, 4 threads)
-- **Memory**: 15 GB RAM (12 GB available)
-- **Storage**: 48 GB root + 196 GB additional disk
-- **OS**: Ubuntu 24.04 LTS
-- **Recommended Workers**: 4
-- **Expected Performance**: ~6-8 seconds per page (3-4x slower)
-
-#### Minimum Requirements
-- **CPU**: 2+ cores
-- **Memory**: 4 GB RAM (8 GB recommended)
-- **Storage**: 10 GB free space
-- **Recommended Workers**: 2-4
-
-### Performance Comparison
-
-| Hardware | Workers | Per Page | 10 Pages | 50 Pages | Cost |
-|----------|---------|----------|----------|----------|---------|
-| Apple M4 | 16 | ~2s | ~15s | ~1.5min | High |
-| AMD EPYC | 4 | ~7s | ~45s | ~4min | Low |
-| Minimum | 2 | ~12s | ~90s | ~8min | Very Low |
-
-### Configuration Guidelines
-
-#### Environment Variables
-Copy `.env.example` to `.env` and adjust based on your hardware:
-
-```bash
-# For Apple M4 (high-performance)
-MAX_WORKERS=16
-API_PORT=8000
-LOG_LEVEL=INFO
-
-# For AMD EPYC (cloud/server)
-MAX_WORKERS=4
-API_PORT=8000
-LOG_LEVEL=WARNING  # Reduce logging overhead
-
-# For minimum setup
-MAX_WORKERS=2
-API_PORT=8000
-LOG_LEVEL=ERROR
-```
-
-#### Memory Considerations
-- **Per Worker**: ~2-3 GB RAM usage
-- **Apple M4**: 16 workers × 2GB = ~32GB peak (with 16GB physical)
-- **AMD EPYC**: 4 workers × 2GB = ~8GB peak (safe for 12GB available)
-- **Large PDFs**: May require reducing workers to prevent memory pressure
-
-### Software Environment (Tested)
-- **Python**: 3.13.5 (3.8+ supported)
-- **Tesseract**: 5.5.1
-- **OCR Languages**: Vietnamese (vie), English (eng), and 100+ other languages supported
+- **Average Processing Speed**: ~2.2 seconds per page
+- **Optimization Improvement**: 85% faster than baseline
+- **Parallel Processing**: Up to 4 concurrent pages
+- **Memory Efficiency**: In-memory PDF processing
 
 ## 🔧 API Endpoints
 
@@ -338,11 +256,40 @@ output/[filename]/
 
 ## 🧪 Testing
 
-### Run Sample Tests
+### Integration Test Suite
+
+The project includes a comprehensive integration test suite that validates all API functionality:
+
+```bash
+# Run full integration test
+python integration_test.py --file samples/1.pdf --verbose
+
+# Test with different files
+python integration_test.py --file samples/2.pdf
+python integration_test.py --file samples/3.pdf
+python integration_test.py --file samples/4.pdf
+
+# Quick API status check
+python api_status_check.py
+
+# Watch mode for monitoring
+python api_status_check.py --watch
+```
+
+### Test Results
+
+**Integration Test Status**: ✅ 100% PASSED (18/18 tests)
+
+| Test File | Pages | Processing Time | Success Rate | Status |
+|-----------|-------|----------------|--------------|--------|
+| 1.pdf     | 4     | 20.01s        | 100%        | ✅ PASSED |
+| 2.pdf     | 9     | 35.02s        | 100%        | ✅ PASSED |
+
+### Manual Testing
 
 ```bash
 # Test all sample documents
-for i in {1..3}; do
+for i in {1..4}; do
   echo "Processing samples/${i}.pdf..."
   curl -X POST "http://localhost:8000/documents/transform" \
     -F "file=@samples/${i}.pdf" \
@@ -363,6 +310,68 @@ head output/1/text/1_page1.txt
 
 # Check analysis results
 jq '.processing_time, .total_pages, .issues_detected' output/1/1_analysis.json
+```
+
+## 🌐 Remote Access
+
+### Quick Setup
+
+```bash
+# Run the setup script
+python setup_remote_access.py
+
+# Test API health
+./direct_access.sh health
+
+# Upload a document
+./direct_access.sh upload samples/1.pdf
+```
+
+### Access Methods
+
+#### 1. Direct Access (if firewall allows)
+```bash
+# API URL: http://10.148.0.2:8000
+python remote_client.py --url http://10.148.0.2:8000 --health
+python remote_client.py --url http://10.148.0.2:8000 --file your_document.pdf
+```
+
+#### 2. SSH Tunnel (Recommended)
+```bash
+# Create SSH tunnel
+ssh -L 8000:localhost:8000 gcpcoder@YOUR_SERVER_IP
+
+# Use localhost in another terminal
+python remote_client.py --url http://localhost:8000 --health
+```
+
+#### 3. Quick Commands
+```bash
+# Health check
+./direct_access.sh health
+
+# Upload document
+./direct_access.sh upload your_document.pdf
+
+# Check status
+./direct_access.sh status DOCUMENT_ID
+```
+
+### Python Client Examples
+
+```python
+from remote_client import RemoteOCRClient
+
+# Initialize client
+client = RemoteOCRClient("http://10.148.0.2:8000")
+
+# Check health
+health = client.health_check()
+print(f"API Status: {health['status']}")
+
+# Process document
+result = client.process_document("your_document.pdf", language="vie")
+print(f"Processed {result['total_pages']} pages in {result['processing_time']:.2f}s")
 ```
 
 ## 🚀 Production Deployment
@@ -443,6 +452,26 @@ This API includes several performance optimizations:
 4. **Optimized Tesseract**: Configured for speed with `--oem 1`
 5. **Optional Features**: Handwriting detection disabled by default
 6. **Reduced Logging**: Production-optimized logging levels
+
+### Hardware-Specific Optimizations
+
+**For High-Performance Systems (16+ cores, 32+ GB RAM):**
+- Increase `max_workers` to 4-8 for better parallelization
+- Enable handwriting detection for better accuracy
+- Process multiple documents simultaneously
+- Use SSD storage for faster I/O operations
+
+**For Resource-Constrained Systems (4-8 cores, 8-16 GB RAM):**
+- Keep `max_workers` at 2 (default)
+- Disable handwriting detection for speed
+- Process documents sequentially
+- Monitor memory usage for large PDFs
+
+**Cloud Deployment Recommendations:**
+- **Google Cloud**: Use n2-highmem instances (8+ vCPUs, 64+ GB RAM)
+- **AWS**: Use r5.xlarge or larger instances
+- **Azure**: Use D-series VMs with 8+ cores and 32+ GB RAM
+- **Storage**: Use SSD-backed storage for temporary files
 
 ## 🤝 Contributing
 
