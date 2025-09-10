@@ -175,10 +175,10 @@ Error: API returned status 500
 Run the interactive demo to see all features:
 
 ```bash
-python demo_client.py
+python ocr_client.py samples/1.pdf -l vie
 ```
 
-This will walk you through various usage examples with explanations.
+This will demonstrate the client functionality with a sample document.
 
 ### Comprehensive Test Suite
 Run the comprehensive test suite to process all sample documents:
@@ -245,18 +245,19 @@ Based on recent testing with the included sample documents:
 
 | Document | Pages | Processing Time | Performance | Quality Issues |
 |----------|-------|----------------|-------------|----------------|
-| 1.pdf    | 4     | 11.05s        | 2.76s/page  | 0 issues       |
-| 2.pdf    | 9     | 17.41s        | 1.93s/page  | 0 issues       |
-| 3.pdf    | 30    | 35.08s        | 1.17s/page  | 1 quality issue|
-| 4.pdf    | 30    | 36.22s        | 1.21s/page  | 0 issues       |
+| 1.pdf    | 4     | 7.51s         | 1.88s/page  | 0 issues       |
+| 2.pdf    | 9     | 8.90s         | 0.99s/page  | 0 issues       |
+| 3.pdf    | 30    | 21.93s        | 0.73s/page  | 1 quality issue|
+| 4.pdf    | 30    | 24.71s        | 0.82s/page  | 1 quality issue|
 
 **Key Performance Metrics:**
-- **Average Processing Speed**: ~1.2 seconds per page
+- **Average Processing Speed**: ~1.1 seconds per page
 - **Success Rate**: 100% (4/4 files processed successfully)
 - **Total Pages Processed**: 73 pages across 4 documents
 - **File Size Support**: Up to 18MB+ PDFs
 - **With handwriting detection**: +20-30% processing time
 - **Batch processing**: ~10% faster per document
+- **Integration Test Results**: 100% pass rate (9/9 tests)
 
 ## Support
 

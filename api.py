@@ -27,6 +27,10 @@ from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures
 import threading
 
+# Configure Tesseract data path
+TESSDATA_PREFIX = os.getenv('TESSDATA_PREFIX', '/usr/share/tesseract-ocr/4.00/tessdata')
+os.environ['TESSDATA_PREFIX'] = TESSDATA_PREFIX
+
 # Configure logging with production optimization
 # Set to WARNING in production to reduce log noise, INFO for development
 LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO').upper()

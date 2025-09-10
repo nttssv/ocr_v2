@@ -4,23 +4,23 @@ This guide shows you how to access your OCR API from your local computer.
 
 ## 🔧 Current API Configuration
 
-- **Internal IP**: 10.148.0.2
-- **Port**: 8000
-- **Status**: Running and healthy
-- **Process ID**: 2225
+- **OCR API**: http://localhost:8000 (Primary API - Fully Operational)
+- **Case Management API**: http://localhost:8001 (Available but may require setup)
+- **Status**: ✅ Running
+- **Performance**: ~1.1 seconds per page processing
 
 ## 🚀 Method 1: Direct Access (If API is accessible)
 
 ### Step 1: Test API Accessibility
 
-From your local computer, test if the API is accessible:
+From your local computer, test if the API is accessible (replace with actual IP):
 
 ```bash
 # Test API health
-curl http://10.148.0.2:8000/health
+curl http://[YOUR_SERVER_IP]:8000/health
 
 # Test API info
-curl http://10.148.0.2:8000/
+curl http://[YOUR_SERVER_IP]:8000/
 ```
 
 ### Step 2: Process a Document
@@ -46,14 +46,14 @@ If direct access doesn't work, use SSH tunneling:
 
 ### Step 1: Create SSH Tunnel
 
-From your local computer, run:
+From your local computer, run (replace with your server details):
 
 ```bash
 # Create SSH tunnel to forward local port 8000 to remote port 8000
-ssh -L 8000:localhost:8000 gcpcoder@YOUR_SERVER_IP
+ssh -L 8000:localhost:8000 user@[YOUR_SERVER_IP]
 
 # Or if you have a different SSH port:
-ssh -L 8000:localhost:8000 -p YOUR_SSH_PORT gcpcoder@YOUR_SERVER_IP
+ssh -L 8000:localhost:8000 -p YOUR_SSH_PORT user@[YOUR_SERVER_IP]
 ```
 
 ### Step 2: Access API Locally
