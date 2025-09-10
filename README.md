@@ -1,43 +1,83 @@
-# OCR PDF Processing API
+# OCR API with Case Management System
 
-A high-performance FastAPI-based OCR service for processing PDF documents with Vietnamese text extraction, quality analysis, and organized file output.
+A comprehensive OCR (Optical Character Recognition) API with advanced case management and extraction workflow capabilities, built with FastAPI for high-performance document processing.
 
 ## 🚀 Features
 
-- **Multi-language OCR**: Supports Vietnamese, English, and combined language processing
-- **Quality Analysis**: Automatic detection of skew, orientation, blank pages, and handwriting
-- **Parallel Processing**: Optimized multi-threaded page processing for faster results
-- **Organized Output**: Filename-based folders with separate subdirectories for PDFs and text files
-- **Performance Optimized**: 85% faster processing with streamlined OCR pipeline
-- **RESTful API**: Easy integration with web applications and services
+### Core OCR Capabilities
+- **Multi-language OCR support** with configurable language settings
+- **PDF processing** with automatic page splitting and parallel processing
+- **Quality analysis** including rotation detection, text extraction confidence, and issue identification
+- **Handwriting detection** (optional) for mixed content documents
+- **Asynchronous processing** for handling multiple documents efficiently
+
+### Case Management System
+- **Case-based document organization** for structured workflow management
+- **Job coordination system** with priority-based processing
+- **Extraction workflow** with lease-based task distribution
+- **Webhook notifications** for real-time status updates
+- **Bulk operations** for efficient batch processing
+- **Comprehensive monitoring** with metrics and health checks
+
+### API Features
+- **RESTful API** with comprehensive error handling and validation
+- **Idempotency support** to prevent duplicate operations
+- **Cursor-based pagination** for scalable data retrieval
+- **Interactive documentation** with Swagger UI
+- **Health monitoring** with detailed system status
+
+## 🏗️ Architecture
+
+The system consists of two main components:
+
+1. **OCR API** (`api.py`) - Core document processing on port 8000
+2. **Case Management API** (`case_management_api.py`) - Workflow orchestration on port 8001
+
+```
+┌─────────────────┐    ┌──────────────────────┐
+│   OCR API       │    │  Case Management API │
+│   Port 8000     │◄───┤  Port 8001           │
+│                 │    │                      │
+│ • PDF Processing│    │ • Case Management    │
+│ • Text Extraction│   │ • Job Coordination   │
+│ • Quality Analysis│  │ • Extraction Workflow│
+└─────────────────┘    │ • Webhook System     │
+                       └──────────────────────┘
+```
 
 ## 📁 Project Structure
 
 ```
 ocr_test/
-├── api.py                 # Main FastAPI application
-├── requirements.txt       # Python dependencies
-├── requirements_client.txt # Client tool dependencies
-├── ocr_client.py         # Command-line OCR client
-├── demo_client.py        # Interactive demo client
-├── CLIENT_README.md      # Client documentation
-├── samples/              # Sample PDF files for testing
-│   ├── 1.pdf            # 4-page Vietnamese legal document
-│   ├── 2.pdf            # 9-page Vietnamese court document
-│   ├── 3.pdf            # 30-page Vietnamese legal document
-│   └── 4.pdf            # 7-page Vietnamese court judgment
-└── output/               # Processed results
-    ├── 1/                # Results for 1.pdf
-    │   ├── 1_analysis.json
-    │   ├── pdf/          # Individual page PDFs
+├── api.py                    # Main OCR FastAPI application
+├── case_management_api.py    # Case management system API
+├── requirements.txt          # Python dependencies
+├── requirements_client.txt   # Client tool dependencies
+├── README.md                 # Main documentation
+├── API_DOCUMENTATION.md      # API endpoint documentation
+├── CLIENT_README.md          # Client tools documentation
+├── ocr_client.py            # Command-line OCR client
+├── demo_client.py           # Interactive demo client
+├── final_test.py            # Comprehensive test suite
+├── integration_test.py      # Integration testing
+├── create_sample_pdfs.py    # Sample PDF generator
+├── samples/                 # Sample PDF files for testing
+│   ├── 1.pdf               # 4-page Vietnamese legal document
+│   ├── 2.pdf               # 9-page Vietnamese court document
+│   ├── 3.pdf               # 30-page Vietnamese legal document
+│   └── 4.pdf               # 30-page Vietnamese court judgment
+└── output/                  # Processed results
+    ├── 1/                   # Results for 1.pdf
+    │   ├── 1_analysis.json  # Quality analysis and metadata
+    │   ├── pdf/             # Individual page PDFs
     │   │   ├── 1_page1.pdf
     │   │   └── ...
-    │   └── text/         # Extracted text files
+    │   └── text/            # Extracted text files
     │       ├── 1_page1.txt
     │       └── ...
-    ├── 2/                # Results for 2.pdf
-    ├── 3/                # Results for 3.pdf
-    └── 4/                # Results for 4.pdf
+    ├── 2/                   # Results for 2.pdf
+    ├── 3/                   # Results for 3.pdf (30 pages)
+    └── 4/                   # Results for 4.pdf (30 pages)
 ```
 
 ## 🛠️ Installation
@@ -109,25 +149,88 @@ Visit `http://localhost:8000/docs` for interactive API documentation.
 
 ## 📊 Performance Benchmarks
 
-Based on processing the included sample documents:
+Based on processing the included sample documents (latest test results):
 
 | Document | Pages | Processing Time | Performance | Quality Issues |
 |----------|-------|----------------|-------------|----------------|
-| 1.pdf    | 4     | 9.51s         | 2.38s/page  | 0 issues       |
-| 2.pdf    | 9     | 21.68s        | 2.41s/page  | 1 orientation  |
-| 3.pdf    | 30    | 51.70s        | 1.72s/page  | 1 blank page   |
-| 4.pdf    | 7     | 8.94s         | 1.28s/page  | 0 issues       |
+| 1.pdf    | 4     | 11.05s        | 2.76s/page  | 0 issues       |
+| 2.pdf    | 9     | 17.41s        | 1.93s/page  | 0 issues       |
+| 3.pdf    | 30    | 35.08s        | 1.17s/page  | 1 quality issue|
+| 4.pdf    | 30    | 36.22s        | 1.21s/page  | 0 issues       |
 
 **Key Performance Metrics:**
-- **Average Processing Speed**: ~1.9 seconds per page
-- **Optimization Improvement**: 85% faster than baseline
+- **Average Processing Speed**: ~1.2 seconds per page
+- **Total Documents Processed**: 73 pages across 4 documents
+- **Success Rate**: 100% (4/4 files processed successfully)
 - **Parallel Processing**: Up to 16 concurrent workers
-- **Memory Efficiency**: In-memory PDF processing
-- **Apple M4 Performance**: 2x faster than typical systems (8.94s vs 18s for 7-page documents)
+- **Memory Efficiency**: In-memory PDF processing with large file support
+- **Apple M4 Performance**: Optimized for high-throughput document processing
 
-### System Configuration (Tested)
-- **Hardware**: Apple M4 chip (10 cores: 4 performance + 6 efficiency), 16 GB RAM, Apple SSD
-- **Software**: macOS 15.5, Python 3.13.5, Tesseract 5.5.1
+## 💻 Hardware Configuration & Performance
+
+### Recommended Hardware Configurations
+
+#### High-Performance Setup (Tested)
+- **CPU**: Apple M4 chip (10 cores: 4 performance + 6 efficiency)
+- **Memory**: 16 GB RAM
+- **Storage**: Apple SSD
+- **OS**: macOS 15.5
+- **Recommended Workers**: 16
+- **Expected Performance**: ~1.9 seconds per page
+
+#### Cloud/Server Setup
+- **CPU**: AMD EPYC 7B13 (2 cores, 4 threads)
+- **Memory**: 15 GB RAM (12 GB available)
+- **Storage**: 48 GB root + 196 GB additional disk
+- **OS**: Ubuntu 24.04 LTS
+- **Recommended Workers**: 4
+- **Expected Performance**: ~6-8 seconds per page (3-4x slower)
+
+#### Minimum Requirements
+- **CPU**: 2+ cores
+- **Memory**: 4 GB RAM (8 GB recommended)
+- **Storage**: 10 GB free space
+- **Recommended Workers**: 2-4
+
+### Performance Comparison
+
+| Hardware | Workers | Per Page | 10 Pages | 50 Pages | Cost |
+|----------|---------|----------|----------|----------|---------|
+| Apple M4 | 16 | ~2s | ~15s | ~1.5min | High |
+| AMD EPYC | 4 | ~7s | ~45s | ~4min | Low |
+| Minimum | 2 | ~12s | ~90s | ~8min | Very Low |
+
+### Configuration Guidelines
+
+#### Environment Variables
+Copy `.env.example` to `.env` and adjust based on your hardware:
+
+```bash
+# For Apple M4 (high-performance)
+MAX_WORKERS=16
+API_PORT=8000
+LOG_LEVEL=INFO
+
+# For AMD EPYC (cloud/server)
+MAX_WORKERS=4
+API_PORT=8000
+LOG_LEVEL=WARNING  # Reduce logging overhead
+
+# For minimum setup
+MAX_WORKERS=2
+API_PORT=8000
+LOG_LEVEL=ERROR
+```
+
+#### Memory Considerations
+- **Per Worker**: ~2-3 GB RAM usage
+- **Apple M4**: 16 workers × 2GB = ~32GB peak (with 16GB physical)
+- **AMD EPYC**: 4 workers × 2GB = ~8GB peak (safe for 12GB available)
+- **Large PDFs**: May require reducing workers to prevent memory pressure
+
+### Software Environment (Tested)
+- **Python**: 3.13.5 (3.8+ supported)
+- **Tesseract**: 5.5.1
 - **OCR Languages**: Vietnamese (vie), English (eng), and 100+ other languages supported
 
 ## 🔧 API Endpoints

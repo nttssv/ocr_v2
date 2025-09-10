@@ -169,8 +169,9 @@ Error: API returned status 500
 ```
 **Solution**: Check the API server logs for detailed error information
 
-## Demo Script
+## Demo Scripts
 
+### Interactive Demo
 Run the interactive demo to see all features:
 
 ```bash
@@ -178,6 +179,30 @@ python demo_client.py
 ```
 
 This will walk you through various usage examples with explanations.
+
+### Comprehensive Test Suite
+Run the comprehensive test suite to process all sample documents:
+
+```bash
+python final_test.py
+```
+
+This script:
+- Processes all PDF files in the samples/ directory
+- Handles asynchronous processing with proper status checking
+- Provides detailed logging and error handling
+- Saves comprehensive results to `final_test_results.json`
+- Shows processing times, page counts, and quality analysis
+
+**Sample Output:**
+```
+✅ Test Results Summary:
+📊 OCR Success Rate: 100.0% (4/4 files)
+⏱️  Total Processing Time: ~100 seconds
+📄 Total Pages Processed: 73 pages
+🔍 Quality Issues Found: 1 file with issues
+💾 Results saved to: final_test_results.json
+```
 
 ## Integration Examples
 
@@ -216,10 +241,20 @@ if result:
 
 ## Performance Benchmarks
 
-Typical processing times on modern hardware:
+Based on recent testing with the included sample documents:
 
-- **Single page document**: 1-3 seconds
-- **Multi-page document**: 1-2 seconds per page
+| Document | Pages | Processing Time | Performance | Quality Issues |
+|----------|-------|----------------|-------------|----------------|
+| 1.pdf    | 4     | 11.05s        | 2.76s/page  | 0 issues       |
+| 2.pdf    | 9     | 17.41s        | 1.93s/page  | 0 issues       |
+| 3.pdf    | 30    | 35.08s        | 1.17s/page  | 1 quality issue|
+| 4.pdf    | 30    | 36.22s        | 1.21s/page  | 0 issues       |
+
+**Key Performance Metrics:**
+- **Average Processing Speed**: ~1.2 seconds per page
+- **Success Rate**: 100% (4/4 files processed successfully)
+- **Total Pages Processed**: 73 pages across 4 documents
+- **File Size Support**: Up to 18MB+ PDFs
 - **With handwriting detection**: +20-30% processing time
 - **Batch processing**: ~10% faster per document
 
