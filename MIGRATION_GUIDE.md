@@ -1,116 +1,137 @@
-# Migration Guide: New Project Structure
+# Migration Guide: Test Organization and Structure Updates
 
-This guide helps you understand the changes made to implement the new API-focused project structure.
+This guide helps you understand the changes made to organize the test suite and improve project structure.
 
 ## What Changed
 
-### File Relocations
+### Test Organization
 
 | Old Location | New Location | Purpose |
 |--------------|--------------|----------|
-| `api.py` | `src/api/v1/api.py` | Main OCR API |
-| `case_management_api.py` | `src/api/v1/case_management_api.py` | Case Management API |
-| `ocr_client.py` | `tools/client/ocr_client.py` | Client tools |
-| `*test*.py` | `tests/` | Test files |
-| `API_DOCUMENTATION.md` | `docs/api/API_DOCUMENTATION.md` | API docs |
-| `CLIENT_README.md` | `docs/guides/CLIENT_README.md` | User guides |
-| `requirements*.txt` | `config/` | Configuration |
-| `api_examples.json` | `docs/examples/` | Examples |
-| `create_sample_pdfs.py` | `tools/scripts/` | Utility scripts |
-| `api_status_check.py` | `tools/monitoring/` | Monitoring tools |
+| `final_test.py` | `tests/integration/final_test.py` | Integration tests |
+| `integration_test.py` | `tests/integration/integration_test.py` | API integration tests |
+| `test_*.py` (various) | `tests/e2e/` | End-to-end tests |
+| `test_config.py` | `tests/unit/test_config.py` | Test configuration |
 
-### New Structure Benefits
+### Current Project Structure
 
-1. **Modular Architecture**: Clear separation between API, business logic, models, and utilities
-2. **Scalability**: Easy to add new API versions, services, and components
-3. **Testing**: Organized test structure with unit, integration, and E2E tests
-4. **Deployment**: Ready-to-use Docker and Kubernetes configurations
-5. **Development**: Modern tooling with Makefile, pyproject.toml, and development workflows
+| Component | Location | Purpose |
+|-----------|----------|----------|
+| `api.py` | Root directory | Main OCR API |
+| `case_management_api.py` | Root directory | Case Management API |
+| `ocr_client.py` | Root directory | Client tools |
+| Test files | `tests/unit/`, `tests/integration/`, `tests/e2e/` | Organized test suite |
+| Documentation | `docs/` | Project documentation |
+| Sample files | `samples/` | Test data |
+
+### Test Organization Benefits
+
+1. **Clear Test Categories**: Separated unit, integration, and end-to-end tests
+2. **Better Test Discovery**: Tests are organized by type and purpose
+3. **Improved Maintainability**: Easier to run specific test suites
+4. **Consistent Structure**: Follows pytest best practices
+5. **Isolated Test Environments**: Each test type has its own configuration
 
 ## Running the Application
 
-### Before (Old Structure)
+### Current Structure
 ```bash
+# Start the main OCR API
 python api.py
-python case_management_api.py
-```
 
-### After (New Structure)
-```bash
-# Using Makefile (recommended)
+# Start the case management API (separate terminal)
+python case_management_api.py
+
+# Using Makefile (if available)
 make run-dev
 make run-case-management
-
-# Or directly with uvicorn
-uvicorn src.api.v1.api:app --reload
-uvicorn src.api.v1.case_management_api:app --reload --port 8001
 ```
 
-## Development Workflow
+## Testing Workflow
 
-### Setup
+### Running Tests
 ```bash
-# Install dependencies
-make install-dev
+# Run all tests
+pytest
 
-# Run tests
+# Run specific test categories
+pytest tests/unit/          # Unit tests
+pytest tests/integration/   # Integration tests
+pytest tests/e2e/          # End-to-end tests
+
+# Run with verbose output
+pytest tests/ -v
+
+# Using Makefile (if available)
 make test
-
-# Format code
-make format
-
-# Run linting
-make lint
+make test-unit
+make test-integration
+make test-e2e
 ```
 
-### Docker Development
+### Test Development
 ```bash
-# Build and run with Docker Compose
-cd deployment/docker
-docker-compose up -d
+# Add new unit tests
+# Place in tests/unit/
+
+# Add new integration tests
+# Place in tests/integration/
+
+# Add new e2e tests
+# Place in tests/e2e/
 ```
 
-## Import Changes
+## Test Import Changes
 
-If you have custom scripts that import from the old structure, update them:
+If you have test files that need to import test utilities:
 
 ```python
-# Old imports
-from api import some_function
-from case_management_api import some_class
+# Import test configuration
+from tests.unit.test_config import TestEnvironment
 
-# New imports
-from src.api.v1.api import some_function
-from src.api.v1.case_management_api import some_class
+# Import test fixtures
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
+from unit.test_config import TestEnvironment
 ```
 
-## Configuration
+## Test Configuration
 
-- **Dependencies**: Now managed in `pyproject.toml` with optional dev dependencies
-- **Environment**: Configuration files moved to `config/` directory
-- **Data**: Sample files and outputs organized in `data/` directory
+- **Test Structure**: Tests organized in `tests/unit/`, `tests/integration/`, `tests/e2e/`
+- **Test Data**: Sample files in `samples/` directory
+- **Test Outputs**: Results stored in `output/` directory
+- **Test Configuration**: Shared test utilities in `tests/unit/test_config.py`
 
 ## Next Steps
 
-1. **Update CI/CD**: Modify build scripts to use the new structure
-2. **Environment Variables**: Update any deployment scripts with new paths
-3. **Documentation**: Review and update any internal documentation
-4. **Team Training**: Familiarize team with new development workflow
+1. **Test Coverage**: Add more unit tests for core functionality
+2. **Test Automation**: Set up CI/CD pipeline for automated testing
+3. **Test Documentation**: Document test scenarios and expected outcomes
+4. **Performance Testing**: Add performance benchmarks and load tests
 
-## Rollback (if needed)
+## Test File Locations
 
-If you need to rollback to the old structure temporarily:
+Current test file organization:
 
 ```bash
-# Copy files back to root (not recommended for production)
-cp src/api/v1/api.py .
-cp src/api/v1/case_management_api.py .
-cp tools/client/ocr_client.py .
+tests/
+├── unit/
+│   └── test_config.py          # Test configuration and utilities
+├── integration/
+│   ├── final_test.py           # Comprehensive integration tests
+│   └── integration_test.py     # API integration tests
+└── e2e/
+    ├── realtime_api_test.py    # Real-time API testing
+    ├── test_all_samples.py     # Sample processing tests
+    ├── test_hierarchy_enhancement.py  # Hierarchy feature tests
+    └── test_samples_hierarchy.py      # Sample hierarchy tests
 ```
 
 ## Support
 
-For questions about the new structure:
+For questions about the test structure:
 1. Check the main [README.md](README.md)
-2. Review [API Documentation](docs/api/API_DOCUMENTATION.md)
-3. Look at [examples](docs/examples/) for usage patterns
+2. Review test files in `tests/` directory
+3. Run `pytest --help` for testing options
+4. Check [docs/README.md](docs/README.md) for comprehensive testing guide
