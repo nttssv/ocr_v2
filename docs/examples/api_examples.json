@@ -1,0 +1,83 @@
+{
+  "curl_examples": {
+    "create_case": "curl -X POST \"http://localhost:8001/v1/cases\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"Idempotency-Key: $(uuidgen)\" \\\n  -d '{\n    \"name\": \"Legal Document Case\",\n    \"description\": \"Processing Vietnamese court decision\",\n    \"metadata\": {\"client\": \"ABC Law Firm\", \"priority\": \"high\"},\n    \"priority\": 8\n  }'",
+    "add_document": "curl -X POST \"http://localhost:8001/v1/cases/{case_id}/documents\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"Idempotency-Key: $(uuidgen)\" \\\n  -d '{\n    \"filename\": \"court_decision.pdf\",\n    \"url\": \"https://example.com/documents/court_decision.pdf\",\n    \"metadata\": {\"pages\": 4, \"language\": \"vietnamese\"}\n  }'",
+    "create_job": "curl -X POST \"http://localhost:8001/v1/jobs\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"Idempotency-Key: $(uuidgen)\" \\\n  -d '{\n    \"case_ids\": [\"case_id_1\", \"case_id_2\"],\n    \"language\": \"vie\",\n    \"enable_handwriting_detection\": false,\n    \"priority\": 7\n  }'",
+    "claim_cases": "curl -X GET \"http://localhost:8001/v1/cases/ready-for-extraction?claim=true&lease_duration_minutes=30&limit=5\" \\\n  -H \"Content-Type: application/json\"",
+    "update_extraction": "curl -X PATCH \"http://localhost:8001/v1/cases/{case_id}/extraction-status\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"Idempotency-Key: $(uuidgen)\" \\\n  -d '{\n    \"status\": \"succeeded\",\n    \"metadata\": {\"entities_extracted\": 15, \"confidence\": 0.95}\n  }'"
+  },
+  "python_examples": {
+    "setup": "import requests\nimport uuid\nfrom datetime import datetime\n\nBASE_URL = \"http://localhost:8001\"\nsession = requests.Session()\n\ndef make_request(method, endpoint, **kwargs):\n    url = f\"{BASE_URL}{endpoint}\"\n    if method.upper() in [\"POST\", \"PATCH\"]:\n        if \"headers\" not in kwargs:\n            kwargs[\"headers\"] = {}\n        kwargs[\"headers\"][\"Idempotency-Key\"] = str(uuid.uuid4())\n    return session.request(method, url, **kwargs)",
+    "create_case": "# Create a new case\ncase_data = {\n    \"name\": \"Legal Document Processing\",\n    \"description\": \"Vietnamese court decision analysis\",\n    \"metadata\": {\"client\": \"Law Firm XYZ\", \"urgent\": True},\n    \"priority\": 8\n}\n\nresponse = make_request(\"POST\", \"/v1/cases\", json=case_data)\ncase = response.json()\ncase_id = case[\"case_id\"]\nprint(f\"Created case: {case_id}\")",
+    "add_document": "# Add document to case\ndoc_data = {\n    \"filename\": \"legal_doc.pdf\",\n    \"url\": \"https://example.com/docs/legal_doc.pdf\",\n    \"metadata\": {\"pages\": 4, \"language\": \"vie\"}\n}\n\nresponse = make_request(\"POST\", f\"/v1/cases/{case_id}/documents\", json=doc_data)\ndocument = response.json()\nprint(f\"Added document: {document['document_id']}\")",
+    "create_job": "# Create OCR job\njob_data = {\n    \"case_ids\": [case_id],\n    \"language\": \"vie\",\n    \"enable_handwriting_detection\": False,\n    \"priority\": 7\n}\n\nresponse = make_request(\"POST\", \"/v1/jobs\", json=job_data)\njob = response.json()\njob_id = job[\"job_id\"]\nprint(f\"Created job: {job_id}\")",
+    "extraction_workflow": "# Extraction workflow\n# 1. Get cases ready for extraction\nresponse = make_request(\"GET\", \"/v1/cases/ready-for-extraction\", \n                       params={\"claim\": True, \"lease_duration_minutes\": 30})\nready_cases = response.json()\n\n# 2. Update extraction status\nfor case in ready_cases[\"cases\"]:\n    case_id = case[\"case_id\"]\n    \n    # Start extraction\n    update_data = {\n        \"status\": \"in_progress\",\n        \"metadata\": {\"worker_id\": \"worker_001\"}\n    }\n    make_request(\"PATCH\", f\"/v1/cases/{case_id}/extraction-status\", json=update_data)\n    \n    # Complete extraction\n    update_data = {\n        \"status\": \"succeeded\",\n        \"metadata\": {\"entities\": 15, \"confidence\": 0.95}\n    }\n    make_request(\"PATCH\", f\"/v1/cases/{case_id}/extraction-status\", json=update_data)"
+  },
+  "postman_collection": {
+    "info": {
+      "name": "Case Management & OCR API",
+      "description": "Complete API collection for case management and extraction workflows",
+      "version": "2.0.0"
+    },
+    "variable": [
+      {
+        "key": "base_url",
+        "value": "http://localhost:8001"
+      },
+      {
+        "key": "case_id",
+        "value": ""
+      },
+      {
+        "key": "job_id",
+        "value": ""
+      },
+      {
+        "key": "document_id",
+        "value": ""
+      }
+    ],
+    "item": [
+      {
+        "name": "Case Management",
+        "item": [
+          {
+            "name": "Create Case",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Idempotency-Key",
+                  "value": "{{$guid}}"
+                }
+              ],
+              "url": "{{base_url}}/v1/cases",
+              "body": {
+                "mode": "raw",
+                "raw": "{\n  \"name\": \"Test Case\",\n  \"description\": \"API test case\",\n  \"priority\": 5\n}"
+              }
+            }
+          },
+          {
+            "name": "Get Case",
+            "request": {
+              "method": "GET",
+              "url": "{{base_url}}/v1/cases/{{case_id}}"
+            }
+          },
+          {
+            "name": "List Cases",
+            "request": {
+              "method": "GET",
+              "url": "{{base_url}}/v1/cases?limit=10"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

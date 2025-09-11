@@ -59,7 +59,7 @@ class DocumentStatus(str, Enum):
 class DocumentCreate(BaseModel):
     """Model for creating a document within a case"""
     filename: str
-    url: Optional[HttpUrl] = None
+    url: Optional[str] = None  # Changed from HttpUrl to str to accept file:// URLs
     metadata: Optional[Dict[str, Any]] = {}
 
 class DocumentResponse(BaseModel):
@@ -160,9 +160,12 @@ def get_current_timestamp() -> datetime:
     return datetime.utcnow()
 
 def validate_idempotency_key(idempotency_key: Optional[str] = Header(None)) -> str:
-    """Validate and return idempotency key"""
+    """Validate and return idempotency key or generate a default one"""
     if not idempotency_key:
-        raise HTTPException(status_code=400, detail="Idempotency-Key header is required")
+        # Generate a default idempotency key based on timestamp and random value
+        import time
+        import random
+        idempotency_key = f"auto-{int(time.time())}-{random.randint(1000, 9999)}"
     return idempotency_key
 
 def create_cursor(timestamp: datetime, id: str) -> str:
@@ -342,7 +345,7 @@ async def add_document_to_case(
         "case_id": case_id,
         "filename": document_data.filename,
         "status": DocumentStatus.UPLOADED,
-        "url": str(document_data.url) if document_data.url else None,
+        "url": document_data.url,
         "metadata": document_data.metadata or {},
         "created_at": timestamp,
         "updated_at": timestamp,

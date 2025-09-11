@@ -30,7 +30,7 @@ python api.py
 ### 3. Process Your First Document
 
 ```bash
-python ocr_client.py samples/document.pdf -l vie
+python ocr_client.py samples/1.pdf -l vie
 ```
 
 ## Usage Examples
@@ -39,20 +39,20 @@ python ocr_client.py samples/document.pdf -l vie
 
 ```bash
 # Process with default settings (English)
-python ocr_client.py document.pdf
+python ocr_client.py samples/1.pdf
 
 # Process Vietnamese document
-python ocr_client.py document.pdf -l vie
+python ocr_client.py samples/1.pdf -l vie
 
 # Enable handwriting detection
-python ocr_client.py document.pdf -l vie --handwriting
+python ocr_client.py samples/1.pdf -l vie --handwriting
 ```
 
 ### Batch Processing
 
 ```bash
 # Process multiple specific files
-python ocr_client.py file1.pdf file2.pdf file3.pdf -l vie
+python ocr_client.py samples/1.pdf samples/2.pdf samples/3.pdf -l vie
 
 # Process all PDFs in a directory
 python ocr_client.py samples/*.pdf -l vie
@@ -65,13 +65,13 @@ python ocr_client.py samples/*.pdf -l eng --handwriting
 
 ```bash
 # Get raw JSON output (useful for scripting)
-python ocr_client.py document.pdf -l vie --json
+python ocr_client.py samples/1.pdf -l vie --json
 
 # Quiet mode (suppress progress indicators)
-python ocr_client.py document.pdf -l vie --quiet
+python ocr_client.py samples/1.pdf -l vie --quiet
 
 # Use custom API URL
-python ocr_client.py document.pdf --url http://localhost:8001
+python ocr_client.py samples/1.pdf --url http://localhost:8001
 ```
 
 ## Command Line Options
@@ -131,7 +131,7 @@ The client provides rich, formatted output including:
 For scripting and automation, use the `--json` flag to get machine-readable output:
 
 ```bash
-python ocr_client.py document.pdf -l vie --json > results.json
+python ocr_client.py samples/1.pdf -l vie --json > results.json
 ```
 
 The JSON output includes all processing results, quality metrics, and file paths.
@@ -153,9 +153,9 @@ Error: OCR API server is not running at http://localhost:8000
 
 ### File Not Found
 ```
-Error: File 'document.pdf' not found
+Error: File 'samples/1.pdf' not found
 ```
-**Solution**: Check the file path and ensure the PDF exists
+**Solution**: Check the file path and ensure the PDF exists. You need to manually place your test PDF files in the `samples/` directory.
 
 ### Connection Timeout
 ```
@@ -245,15 +245,14 @@ Based on recent testing with the included sample documents:
 
 | Document | Pages | Processing Time | Performance | Quality Issues |
 |----------|-------|----------------|-------------|----------------|
-| 1.pdf    | 4     | 7.51s         | 1.88s/page  | 0 issues       |
-| 2.pdf    | 9     | 8.90s         | 0.99s/page  | 0 issues       |
-| 3.pdf    | 30    | 21.93s        | 0.73s/page  | 1 quality issue|
-| 4.pdf    | 30    | 24.71s        | 0.82s/page  | 1 quality issue|
+| 1.pdf    | 4     | 7.52s         | 1.88s/page  | 0 issues       |
+| 2.pdf    | 9     | 9.10s         | 1.01s/page  | 0 issues       |
+| 3.pdf    | 30    | 20.61s        | 0.69s/page  | 3 blank pages  |
 
 **Key Performance Metrics:**
-- **Average Processing Speed**: ~1.1 seconds per page
-- **Success Rate**: 100% (4/4 files processed successfully)
-- **Total Pages Processed**: 73 pages across 4 documents
+- **Average Processing Speed**: ~1.0 seconds per page
+- **Success Rate**: 100% (3/3 files processed successfully)
+- **Total Pages Processed**: 43 pages across 3 documents
 - **File Size Support**: Up to 18MB+ PDFs
 - **With handwriting detection**: +20-30% processing time
 - **Batch processing**: ~10% faster per document

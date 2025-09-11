@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ocr-api
+  labels:
+    app: ocr-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ocr-api
+  template:
+    metadata:
+      labels:
+        app: ocr-api
+    spec:
+      containers:
+      - name: ocr-api
+        image: ocr-api:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: ocr-secrets
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: ocr-secrets
+              key: redis-url
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: data-volume
+          mountPath: /app/data
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: ocr-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ocr-api-service
+spec:
+  selector:
+    app: ocr-api
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ocr-data-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ocr-secrets
+type: Opaque
+data:
+  database-url: cG9zdGdyZXNxbDovL3VzZXI6cGFzc3dvcmRAaG9zdDpwb3J0L2RiXG5hbWU=
+  redis-url: cmVkaXM6Ly9yZWRpcy1ob3N0OjYzNzkvMA==

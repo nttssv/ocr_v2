@@ -47,6 +47,9 @@ API_HOST = os.getenv('API_HOST', '0.0.0.0')
 CORS_ORIGINS = os.getenv('CORS_ORIGINS', '*').split(',')
 CORS_CREDENTIALS = os.getenv('CORS_CREDENTIALS', 'true').lower() == 'true'
 
+# Output directory configuration
+OUTPUT_BASE_DIR = os.getenv('OUTPUT_BASE_DIR', 'data/outputs')
+
 # Log startup configuration
 logger.info(f"OCR API starting with log level: {LOG_LEVEL}")
 logger.info(f"Configuration: {MAX_WORKERS} workers, listening on {API_HOST}:{API_PORT}")
@@ -64,8 +67,8 @@ async def lifespan(app: FastAPI):
     logger.info("Starting PDF Processing API")
     
     # Create output directory
-    output_dir = Path("output")
-    output_dir.mkdir(exist_ok=True)
+    output_dir = Path(OUTPUT_BASE_DIR)
+    output_dir.mkdir(parents=True, exist_ok=True)
     
     yield
     
@@ -170,6 +173,10 @@ def split_pdf_into_pages(input_path: str, output_dir: str, filename_base: str) -
     try:
         import io
         
+        # Create pdf subdirectory if it doesn't exist
+        pdf_dir = os.path.join(output_dir, "pdf")
+        os.makedirs(pdf_dir, exist_ok=True)
+        
         # Read PDF into memory once for better performance
         with open(input_path, 'rb') as f:
             pdf_data = f.read()
@@ -183,7 +190,6 @@ def split_pdf_into_pages(input_path: str, output_dir: str, filename_base: str) -
             
             page_filename = f"{filename_base}_page{page_num + 1}.pdf"
             # Save PDF files in the pdf subdirectory
-            pdf_dir = os.path.join(output_dir, "pdf")
             page_path = os.path.join(pdf_dir, page_filename)
             
             # Use in-memory buffer for faster I/O
@@ -754,6 +760,40 @@ def detect_blank_page_with_ocrmypdf(input_path: str, page_num: int, temp_dir: st
         logger.warning(f"Blank page detection failed for page {page_num}: {e}")
         return False, 0.0
 
+def sanitize_relative_path(relative_path: str) -> str:
+    """Sanitize relative path to prevent directory traversal attacks
+    
+    Args:
+        relative_path: The relative path to sanitize
+        
+    Returns:
+        Sanitized relative path safe for use in file operations
+    """
+    if not relative_path:
+        return ""
+    
+    # Convert to Path object for cross-platform handling
+    path = Path(relative_path)
+    
+    # Convert to POSIX format and get parts
+    parts = path.as_posix().split('/')
+    
+    # Filter out dangerous parts
+    safe_parts = []
+    for part in parts:
+        # Skip empty parts, current directory references, and parent directory references
+        if part and part != '.' and part != '..':
+            # Remove any leading dots or slashes for additional security
+            part = part.lstrip('./\\')
+            if part:  # Only add non-empty parts
+                safe_parts.append(part)
+    
+    # Join parts back together
+    sanitized = '/'.join(safe_parts)
+    
+    # Ensure we don't return an absolute path
+    return sanitized.lstrip('/')
+
 def analyze_pdf_quality(input_path: str) -> tuple[list[QualityIssue], int]:
     """Fast PDF quality analysis using PyPDF2 and basic file checks"""
     quality_issues = []
@@ -849,6 +889,7 @@ def process_single_page(page_file: str, page_number: int, output_dir: str, filen
         text_filename = f"{filename_base}_page{page_number}.txt"
         # Save text files in the text subdirectory
         text_dir = os.path.join(output_dir, "text")
+        os.makedirs(text_dir, exist_ok=True)
         text_path = os.path.join(text_dir, text_filename)
         
         extracted_text, analysis_data, quality_issues_raw = optimized_ocr_with_quality_analysis(
@@ -1141,7 +1182,8 @@ async def transform_document(
     file: Optional[UploadFile] = File(None),
     url_data: Optional[str] = Form(None),
     language: Optional[str] = Form("vie"),  # Default to Vietnamese
-    enable_handwriting_detection: Optional[bool] = Form(False)  # Optional handwriting detection
+    enable_handwriting_detection: Optional[bool] = Form(False),  # Optional handwriting detection
+    relative_input_path: Optional[str] = Form(None)  # NEW: Relative path for nested output structure
 ):
     """Transform document endpoint - accepts file upload or URL with language specification
     
@@ -1150,6 +1192,7 @@ async def transform_document(
     - url_data: JSON string with URL and filename (optional) 
     - language: OCR language code (default: 'vie' for Vietnamese)
     - enable_handwriting_detection: Enable handwriting detection (default: False, improves performance when disabled)
+    - relative_input_path: Relative path from input root to maintain folder hierarchy in output (optional)
     
     Supported languages: vie (Vietnamese), eng (English), vie+eng (Vietnamese + English)
     Note: Handwriting detection is resource-intensive and should only be enabled when needed.
@@ -1198,14 +1241,27 @@ async def transform_document(
         else:
             raise HTTPException(status_code=400, detail="Either file upload or URL must be provided")
         
-        # Create output directory structure with filename-based folder
-        output_base_dir = Path("output")
+        # Create output directory structure with hierarchical folder support
+        output_base_dir = Path(OUTPUT_BASE_DIR)
         output_base_dir.mkdir(exist_ok=True)
         
-        # Create filename-based directory instead of document_id
+        # Create directory structure using relative_input_path if provided
         filename_base = Path(filename).stem
-        document_output_dir = output_base_dir / filename_base
-        document_output_dir.mkdir(exist_ok=True)
+        
+        if relative_input_path:
+            # Sanitize the relative path to prevent directory traversal attacks
+            sanitized_path = sanitize_relative_path(relative_input_path)
+            if sanitized_path:
+                # Create hierarchical structure: output/relative_path/filename/
+                document_output_dir = output_base_dir / sanitized_path / filename_base
+            else:
+                # Fall back to filename-only structure if sanitization results in empty path
+                document_output_dir = output_base_dir / filename_base
+        else:
+            # Default behavior: use just the filename for output directory structure
+            document_output_dir = output_base_dir / filename_base
+        
+        document_output_dir.mkdir(parents=True, exist_ok=True)
         
         # Create subdirectories for organized file storage
         text_dir = document_output_dir / "text"
