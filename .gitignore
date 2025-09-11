@@ -72,4 +72,4 @@ logs/
 # OCR temporary files
 *.ocr.pdf
 *.deskewed.pdf
-*.rotated.pdf
+*.rotated.pdfdata/
